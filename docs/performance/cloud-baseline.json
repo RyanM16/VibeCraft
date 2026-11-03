@@ -1,0 +1,703 @@
+{
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "note": "CPU streaming and software/hardware Vulkan experiments; no target-FPS claim.",
+  "results": [
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "stationary",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 16,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.001272,
+        "p95": 0.001963,
+        "p99": 0.006319
+      },
+      "generation_mesh_ms": {
+        "median": 0.67997,
+        "p99": 1.20025
+      },
+      "mesh_quads_32_samples": 2030,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 73728,
+      "workload_peak_cache_bytes": 73728,
+      "settled_resident_bytes": 73728,
+      "post_workload_settle_ms": 0.001713,
+      "submitted": 9,
+      "completed": 9,
+      "cancelled": 0,
+      "evicted": 0,
+      "rejected": 0,
+      "wall_ms": 1294.01,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "flight",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 16,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.001412,
+        "p95": 0.041443,
+        "p99": 0.084328
+      },
+      "generation_mesh_ms": {
+        "median": 0.667822,
+        "p99": 0.920124
+      },
+      "mesh_quads_32_samples": 2030,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 1048576,
+      "workload_peak_cache_bytes": 1048576,
+      "settled_resident_bytes": 1043328,
+      "post_workload_settle_ms": 1.09,
+      "submitted": 234,
+      "completed": 234,
+      "cancelled": 0,
+      "evicted": 148,
+      "rejected": 0,
+      "wall_ms": 1293.79,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "teleport",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 16,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.001703,
+        "p95": 0.057236,
+        "p99": 0.160844
+      },
+      "generation_mesh_ms": {
+        "median": 0.677587,
+        "p99": 1.99451
+      },
+      "mesh_quads_32_samples": 2030,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 278016,
+      "workload_peak_cache_bytes": 278016,
+      "settled_resident_bytes": 242176,
+      "post_workload_settle_ms": 0.001282,
+      "submitted": 396,
+      "completed": 396,
+      "cancelled": 6,
+      "evicted": 0,
+      "rejected": 0,
+      "wall_ms": 1305.9,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "edits",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 16,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.027411,
+        "p95": 0.079741,
+        "p99": 0.475531
+      },
+      "generation_mesh_ms": {
+        "median": 0.767573,
+        "p99": 2.75323
+      },
+      "mesh_quads_32_samples": 3071,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 113664,
+      "workload_peak_cache_bytes": 4096,
+      "settled_resident_bytes": 113664,
+      "post_workload_settle_ms": 6.84971,
+      "submitted": 4646,
+      "completed": 4646,
+      "cancelled": 4636,
+      "evicted": 0,
+      "rejected": 755,
+      "wall_ms": 1330.63,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "stationary",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 32,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.001112,
+        "p95": 0.002093,
+        "p99": 0.00667
+      },
+      "generation_mesh_ms": {
+        "median": 4.69168,
+        "p99": 8.11287
+      },
+      "mesh_quads_32_samples": 9957,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 332800,
+      "workload_peak_cache_bytes": 332800,
+      "settled_resident_bytes": 332800,
+      "post_workload_settle_ms": 0.001062,
+      "submitted": 9,
+      "completed": 9,
+      "cancelled": 0,
+      "evicted": 0,
+      "rejected": 0,
+      "wall_ms": 1422.15,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "flight",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 32,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.001472,
+        "p95": 0.035243,
+        "p99": 0.165251
+      },
+      "generation_mesh_ms": {
+        "median": 5.37382,
+        "p99": 6.86673
+      },
+      "mesh_quads_32_samples": 9957,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 1048576,
+      "workload_peak_cache_bytes": 1048576,
+      "settled_resident_bytes": 1044480,
+      "post_workload_settle_ms": 0.001593,
+      "submitted": 120,
+      "completed": 120,
+      "cancelled": 0,
+      "evicted": 100,
+      "rejected": 0,
+      "wall_ms": 1459.57,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "teleport",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 32,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.002013,
+        "p95": 0.049886,
+        "p99": 0.25726
+      },
+      "generation_mesh_ms": {
+        "median": 4.932,
+        "p99": 7.81378
+      },
+      "mesh_quads_32_samples": 9957,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 1007616,
+      "workload_peak_cache_bytes": 1007616,
+      "settled_resident_bytes": 779264,
+      "post_workload_settle_ms": 0.001222,
+      "submitted": 288,
+      "completed": 288,
+      "cancelled": 14,
+      "evicted": 0,
+      "rejected": 0,
+      "wall_ms": 1490.33,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "kind": "CPU-only streaming and meshing; not rendered FPS",
+      "scenario": "edits",
+      "seed": 42,
+      "generation_version": 1,
+      "frames": 600,
+      "chunk_side": 32,
+      "workers": 4,
+      "main_thread_ms": {
+        "median": 0.025709,
+        "p95": 0.833512,
+        "p99": 4.87583
+      },
+      "generation_mesh_ms": {
+        "median": 5.9841,
+        "p99": 7.32617
+      },
+      "mesh_quads_32_samples": 12051,
+      "cache_budget_bytes": 1048576,
+      "peak_cache_bytes": 495616,
+      "workload_peak_cache_bytes": 0,
+      "settled_resident_bytes": 495616,
+      "post_workload_settle_ms": 33.6013,
+      "submitted": 3412,
+      "completed": 3412,
+      "cancelled": 3403,
+      "evicted": 0,
+      "rejected": 1993,
+      "wall_ms": 1670.94,
+      "peak_rss_bytes": 10747904
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 640,
+      "height": 360,
+      "scenario": "stationary",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 10.276,
+        "p95": 14.9875,
+        "p99": 16.4872
+      },
+      "gpu_opaque_ms": {
+        "median": 9.6681,
+        "p99": 15.6785
+      },
+      "one_percent_low_fps": 39.7065,
+      "peak_rss_bytes": 97345536
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 640,
+      "height": 360,
+      "scenario": "flight",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 8.94018,
+        "p95": 12.7785,
+        "p99": 14.2352
+      },
+      "gpu_opaque_ms": {
+        "median": 8.50009,
+        "p99": 13.5956
+      },
+      "one_percent_low_fps": 56.6822,
+      "peak_rss_bytes": 95342592
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 640,
+      "height": 360,
+      "scenario": "yaw",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 6.53889,
+        "p95": 9.0749,
+        "p99": 11.0756
+      },
+      "gpu_opaque_ms": {
+        "median": 6.06114,
+        "p99": 10.2781
+      },
+      "one_percent_low_fps": 68.9451,
+      "peak_rss_bytes": 95506432
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 640,
+      "height": 360,
+      "scenario": "edits",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 8.16629,
+        "p95": 11.2385,
+        "p99": 281.362
+      },
+      "gpu_opaque_ms": {
+        "median": 7.65113,
+        "p99": 10.975
+      },
+      "one_percent_low_fps": 3.54717,
+      "peak_rss_bytes": 106541056
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 1920,
+      "height": 1080,
+      "scenario": "stationary",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 17.4037,
+        "p95": 19.9352,
+        "p99": 20.5006
+      },
+      "gpu_opaque_ms": {
+        "median": 16.8986,
+        "p99": 19.9475
+      },
+      "one_percent_low_fps": 44.2442,
+      "peak_rss_bytes": 116060160
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 1920,
+      "height": 1080,
+      "scenario": "flight",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 19.2245,
+        "p95": 26.0605,
+        "p99": 30.0132
+      },
+      "gpu_opaque_ms": {
+        "median": 18.6367,
+        "p99": 25.4655
+      },
+      "one_percent_low_fps": 32.3003,
+      "peak_rss_bytes": 118865920
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 1920,
+      "height": 1080,
+      "scenario": "yaw",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 15.3815,
+        "p95": 21.7902,
+        "p99": 27.7883
+      },
+      "gpu_opaque_ms": {
+        "median": 14.8476,
+        "p99": 27.241
+      },
+      "one_percent_low_fps": 34.4824,
+      "peak_rss_bytes": 112820224
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 1920,
+      "height": 1080,
+      "scenario": "edits",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 17.2196,
+        "p95": 20.5016,
+        "p99": 274.319
+      },
+      "gpu_opaque_ms": {
+        "median": 16.6907,
+        "p99": 21.1056
+      },
+      "one_percent_low_fps": 3.47468,
+      "peak_rss_bytes": 131104768
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 2560,
+      "height": 1440,
+      "scenario": "stationary",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 24.6887,
+        "p95": 26.7425,
+        "p99": 27.3963
+      },
+      "gpu_opaque_ms": {
+        "median": 24.118,
+        "p99": 26.5543
+      },
+      "one_percent_low_fps": 32.9436,
+      "peak_rss_bytes": 140091392
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 2560,
+      "height": 1440,
+      "scenario": "flight",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 21.5185,
+        "p95": 25.8126,
+        "p99": 26.5471
+      },
+      "gpu_opaque_ms": {
+        "median": 21.1361,
+        "p99": 25.9377
+      },
+      "one_percent_low_fps": 37.5936,
+      "peak_rss_bytes": 134471680
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 2560,
+      "height": 1440,
+      "scenario": "yaw",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 22.0102,
+        "p95": 38.1568,
+        "p99": 46.4909
+      },
+      "gpu_opaque_ms": {
+        "median": 21.439,
+        "p99": 41.8822
+      },
+      "one_percent_low_fps": 19.5154,
+      "peak_rss_bytes": 130293760
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 2560,
+      "height": 1440,
+      "scenario": "edits",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 71.48,
+        "p95": 127.32,
+        "p99": 429.487
+      },
+      "gpu_opaque_ms": {
+        "median": 70.7378,
+        "p99": 93.1553
+      },
+      "one_percent_low_fps": 2.30393,
+      "peak_rss_bytes": 151494656
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 3840,
+      "height": 2160,
+      "scenario": "stationary",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 52.8722,
+        "p95": 101,
+        "p99": 122.706
+      },
+      "gpu_opaque_ms": {
+        "median": 52.0835,
+        "p99": 121.043
+      },
+      "one_percent_low_fps": 8.08583,
+      "peak_rss_bytes": 193949696
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 3840,
+      "height": 2160,
+      "scenario": "flight",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 45.2751,
+        "p95": 58.4829,
+        "p99": 63.931
+      },
+      "gpu_opaque_ms": {
+        "median": 44.4649,
+        "p99": 63.2341
+      },
+      "one_percent_low_fps": 7.19917,
+      "peak_rss_bytes": 192675840
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 3840,
+      "height": 2160,
+      "scenario": "yaw",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 33.4285,
+        "p95": 51.9906,
+        "p99": 54.2442
+      },
+      "gpu_opaque_ms": {
+        "median": 32.8459,
+        "p99": 53.5215
+      },
+      "one_percent_low_fps": 17.3722,
+      "peak_rss_bytes": 188006400
+    },
+    {
+      "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+      "software_or_hardware": "inspect device name; cloud uses software Vulkan",
+      "frames": 60,
+      "warmup_frames": 5,
+      "width": 3840,
+      "height": 2160,
+      "scenario": "edits",
+      "preset": "flat-color-fog-no-shadows",
+      "presentation": "offscreen",
+      "visual_extent_blocks": 33536,
+      "near_radius_chunks": 3,
+      "triangles": 56872,
+      "geometry_bytes": 4994560,
+      "validation_errors": 0,
+      "cpu_frame_ms": {
+        "median": 44.0233,
+        "p95": 58.3866,
+        "p99": 291.591
+      },
+      "gpu_opaque_ms": {
+        "median": 43.4851,
+        "p99": 57.35
+      },
+      "one_percent_low_fps": 3.26292,
+      "peak_rss_bytes": 208695296
+    }
+  ],
+  "cpu_evidence_directory": "artifacts/stress-20261103T185144939280Z",
+  "renderer_evidence_directory": "artifacts/stress-20261103T184743687322Z",
+  "source_sha256": {
+    "engine/core/tasks.cpp": "2b13c6dabadca95185485da6b0919eb92235b4a33756f36115eaac811a830c86",
+    "engine/core/tasks.hpp": "62664b9fd12b2dc63c09ee5a82f3d1dfded4077c1ba3898711104f7a077a4ac1",
+    "engine/core/telemetry.hpp": "3690d01c81d5171e3a78dd9b89d85c0a8262bf9e92e683143879f178a9deec4c",
+    "engine/core/world.cpp": "acbd4432f45908318121208699084d077b147cd04c25d8d5155756dadc17cfb8",
+    "engine/core/world.hpp": "eaa4e6a6d781010df34e5fc55143f0798f9c032d0ce48aa47024a9eaa1917620",
+    "engine/render/vulkan/renderer.cpp": "a54ace638ddea1d4ed3c760d245cbe04e954470a0618c56406891ce445425d73",
+    "engine/render/vulkan/renderer.hpp": "f3c0046314398ac14d0bb2dfca8ffaaadde0435b5c5089f4a2abb8b081313b2b",
+    "game/main.cpp": "9e858d98e5c5257a6cfaf93d577ffdfc7ecd983310b1e16b97bc775fafb66f94",
+    "assets/shaders/terrain.frag.hlsl": "33367f377cd5fbf3473da46ee30ec86b8ed337922326c7b8da74c4f3c2f1fbe3",
+    "assets/shaders/terrain.vert.hlsl": "c30282499b2d6f49b685f06b68d7c486ae249b2b3f9d2166775b0d4f7de479dd",
+    "tests/tests.cpp": "72ff50a41d2595631d0c1fb8cfd476ea21051607e1ab4da837b6f4ce0c2355ec",
+    "benchmarks/bench.cpp": "7709e050448f9307dc3e74064b96c69fd76c17c142c30059a1421dc74eb340db"
+  }
+}

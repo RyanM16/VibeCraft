@@ -1,0 +1,42 @@
+name: Engine test bed
+on: [push, pull_request]
+jobs:
+  cpu:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - run: cmake --preset cpu
+      - run: cmake --build --preset cpu
+      - run: ctest --preset cpu
+      - run: python tools/stress.py --build build-cpu --cpu-only --frames 120
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpu-${{ matrix.os }}
+          path: artifacts/
+  vulkan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build libvulkan-dev vulkan-validationlayers mesa-vulkan-drivers libglfw3-dev glslang-tools
+      - run: cmake --preset release -DVC_GPU_TESTS=ON
+      - run: cmake --build --preset release
+      - run: ctest --preset release
+      - run: python3 tools/stress.py --frames 120
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vulkan
+          path: artifacts/
+  sanitizers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake --preset sanitize
+      - run: cmake --build --preset sanitize
+      - run: ctest --preset sanitize

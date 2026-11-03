@@ -1,0 +1,6 @@
+/build*/
+/artifacts/
+/worlds/
+*.tmp
+__pycache__/
+*.pyc

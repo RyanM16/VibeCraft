@@ -1,0 +1,19 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 25, "patch": 0},
+  "configurePresets": [
+    {"name": "release", "generator": "Ninja", "binaryDir": "${sourceDir}/build", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
+    {"name": "cpu", "generator": "Ninja", "binaryDir": "${sourceDir}/build-cpu", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release", "VC_RENDERER": "OFF"}},
+    {"name": "sanitize", "inherits": "cpu", "binaryDir": "${sourceDir}/build-sanitize", "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug", "VC_SANITIZERS": "ON"}}
+  ],
+  "buildPresets": [
+    {"name": "release", "configurePreset": "release", "jobs": 4},
+    {"name": "cpu", "configurePreset": "cpu", "jobs": 4},
+    {"name": "sanitize", "configurePreset": "sanitize", "jobs": 4}
+  ],
+  "testPresets": [
+    {"name": "release", "configurePreset": "release", "output": {"outputOnFailure": true}},
+    {"name": "cpu", "configurePreset": "cpu", "output": {"outputOnFailure": true}},
+    {"name": "sanitize", "configurePreset": "sanitize", "output": {"outputOnFailure": true}}
+  ]
+}

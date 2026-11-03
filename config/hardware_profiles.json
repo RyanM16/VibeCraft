@@ -1,0 +1,28 @@
+{
+  "rtx3080-4k": {
+    "label": "4K PC",
+    "os_user_reported": "Windows 11",
+    "gpu_user_reported": "NVIDIA GeForce RTX 3080",
+    "vram_gb_user_reported": 10,
+    "ram_gb_user_reported": 32,
+    "ram_type_user_reported": "DDR5",
+    "render_width": 3840,
+    "render_height": 2160,
+    "near_radius_chunks": 3,
+    "stress_cache_mib": 1,
+    "status": "User-provided hardware target; hardware performance not measured"
+  },
+  "rx9060xt-1440p": {
+    "label": "1440p PC",
+    "os_user_reported": "Not specified",
+    "gpu_user_reported": "AMD Radeon RX 9060 XT",
+    "vram_gb_user_reported": 16,
+    "ram_gb_user_reported": 64,
+    "ram_type_user_reported": "Not specified",
+    "render_width": 2560,
+    "render_height": 1440,
+    "near_radius_chunks": 3,
+    "stress_cache_mib": 1,
+    "status": "User-provided hardware target; hardware performance not measured"
+  }
+}
