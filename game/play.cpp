@@ -1,4 +1,5 @@
 #include "play.hpp"
+#include "core/caves.hpp"
 #include "core/player.hpp"
 #include "core/terrain_lod.hpp"
 #define GLFW_INCLUDE_NONE
@@ -65,11 +66,18 @@ bool inside(Pos p, Pos center, int radius, int margin = 0) {
 } // namespace
 
 int play(World &world, Renderer &renderer, const std::filesystem::path &save, int radius, int horizon,
-         int frames, const std::string &capture) {
+         int frames, const std::string &capture, bool start_in_cave) {
     auto *window = renderer.window();
     Player player;
-    player.respawn(world);
-    Camera camera{player.feet[0], player.feet[1] + eye_height, player.feet[2], 0, -.25f};
+    auto spawn = [&] {
+        if (start_in_cave)
+            player.spawn_near(world, cave_start(world));
+        else
+            player.respawn(world);
+    };
+    spawn();
+    Camera camera{player.feet[0], player.feet[1] + eye_height, player.feet[2],
+                  start_in_cave ? std::numbers::pi_v<float> / 2 : 0.f, -.25f};
     Pos rendered_center = view_center(camera);
     uint64_t rendered_revision = world.revision();
     auto start = Clock::now();
@@ -88,7 +96,7 @@ int play(World &world, Renderer &renderer, const std::filesystem::path &save, in
     bool jump_down = false, mine_down = false, place_down = false, save_down = false, tab_down = false;
     bool reset_down = false;
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    std::cout << "VibeCraft Beta V2.1 | seed " << world.seed() << " | " << renderer.device_name()
+    std::cout << "VibeCraft Beta V2.2 | seed " << world.seed() << " | " << renderer.device_name()
               << " | world " << save.string() << " | horizon " << horizon / chunk_side << " chunks | "
               << horizon_triangles << " far triangles | " << (mesh_bytes / 1024) << " KiB mesh capacity | "
               << startup_ms << " ms initial mesh and upload\n";
@@ -136,7 +144,7 @@ int play(World &world, Renderer &renderer, const std::filesystem::path &save, in
             camera.pitch = std::clamp(
                 camera.pitch + float((key(GLFW_KEY_UP) - key(GLFW_KEY_DOWN)) * dt * 1.5), -1.55f, 1.55f);
         if (pressed(key(GLFW_KEY_R), reset_down))
-            player.respawn(world);
+            spawn();
         double forward = active ? key(GLFW_KEY_W) - key(GLFW_KEY_S) : 0;
         double right = active ? key(GLFW_KEY_D) - key(GLFW_KEY_A) : 0;
         double speed = (key(GLFW_KEY_LEFT_SHIFT) ? 7. : 4.5) / std::max(1., std::hypot(forward, right));
@@ -210,7 +218,7 @@ int play(World &world, Renderer &renderer, const std::filesystem::path &save, in
         if (now - sample_start >= 500ms) {
             std::ostringstream title;
             double elapsed = std::chrono::duration<double>(now - sample_start).count();
-            title << "VibeCraft Beta V2.1 | " << std::fixed << std::setprecision(1)
+            title << "VibeCraft Beta V2.2 | " << std::fixed << std::setprecision(1)
                   << sampled_frames / elapsed << " FPS | "
                   << (sampled_frames ? elapsed * 1000. / sampled_frames : 0.) << " ms | XYZ " << camera.x
                   << "/" << camera.y << "/" << camera.z << " | seed " << world.seed() << " | bricks "

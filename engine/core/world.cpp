@@ -1,4 +1,5 @@
 #include "core/world.hpp"
+#include "core/caves.hpp"
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -55,7 +56,9 @@ uint8_t World::block(Pos p) const {
     int h = height(p.x, p.z);
     if (p.y > h)
         return 0;
-    if (p.y > 2 && p.y < h - 4 &&
+    if (caves_ && cave_air(*this, p, h))
+        return 0;
+    if (!caves_ && p.y > 2 && p.y < h - 4 &&
         mix(uint64_t(floor_div(p.x, 4)) ^ mix(uint64_t(floor_div(p.y, 3))) ^
             mix(uint64_t(floor_div(p.z, 4))) ^ seed_) %
                 19 ==
@@ -104,7 +107,7 @@ void World::save(const std::filesystem::path &path) const {
         return std::tie(a.first.x, a.first.y, a.first.z) < std::tie(b.first.x, b.first.y, b.first.z);
     });
     std::vector<uint8_t> b = {'V', 'C', 'E', 'D'};
-    put(b, 1, 4);
+    put(b, caves_ ? 2 : 1, 4);
     put(b, seed_, 8);
     put(b, edits.size(), 8);
     for (auto [p, m] : edits) {
@@ -166,8 +169,13 @@ void World::load(const std::filesystem::path &path) {
     if (!f)
         throw std::runtime_error("save read failed");
     size_t at = 4;
-    if (std::string(b.begin(), b.begin() + 4) != "VCED" || get(b, at, 4) != 1)
+    auto version = get(b, at, 4);
+    if (std::string(b.begin(), b.begin() + 4) != "VCED" || (version != 1 && version != 2))
         throw std::runtime_error("unsupported save version");
+    if ((version == 2) != caves_)
+        throw std::runtime_error(version == 2
+                                     ? "cave world requires --caves"
+                                     : "legacy world requires omitting --caves or choosing another --world");
     if (get(b, at, 8) != seed_)
         throw std::runtime_error("world seed mismatch");
     auto n = get(b, at, 8);

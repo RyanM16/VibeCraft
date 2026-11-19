@@ -19,12 +19,13 @@ int64_t floor_div(int64_t a, int64_t b);
 uint64_t mix(uint64_t x);
 class World {
     uint64_t seed_;
+    bool caves_;
     std::atomic<uint64_t> revision_{0};
     mutable std::shared_mutex mutex_;
     std::unordered_map<Pos, uint8_t, Hash> edits_;
 
   public:
-    explicit World(uint64_t seed = 42) : seed_(seed) {}
+    explicit World(uint64_t seed = 42, bool caves = false) : seed_(seed), caves_(caves) {}
     int height(int64_t x, int64_t z) const;
     uint64_t revision() const {
         return revision_.load();

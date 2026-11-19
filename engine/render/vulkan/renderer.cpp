@@ -200,7 +200,7 @@ struct Renderer::Impl {
             if (!glfwInit())
                 throw std::runtime_error("GLFW initialization failed: use --headless without a display");
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-            window = glfwCreateWindow(config.width, config.height, "VibeCraft Beta V2.1", nullptr, nullptr);
+            window = glfwCreateWindow(config.width, config.height, "VibeCraft Beta V2.2", nullptr, nullptr);
             if (!window)
                 throw std::runtime_error("window creation failed");
             uint32_t count = 0;
@@ -224,7 +224,7 @@ struct Renderer::Impl {
             extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
         }
         VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-        app.pApplicationName = "VibeCraft Beta V2.1";
+        app.pApplicationName = "VibeCraft Beta V2.2";
         app.apiVersion = VK_API_VERSION_1_3;
         VkInstanceCreateInfo ci{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
         VkValidationFeatureEnableEXT sync = VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT;

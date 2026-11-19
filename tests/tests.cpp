@@ -1,3 +1,4 @@
+#include "core/caves.hpp"
 #include "core/player.hpp"
 #include "core/tasks.hpp"
 #include "core/terrain_lod.hpp"
@@ -36,6 +37,72 @@ int main() {
         }
     };
     try {
+        test("connected cave crosses brick boundaries and preserves its save profile", [] {
+            World cave(42, true), legacy(42);
+            auto start = cave_start(cave);
+            Player player;
+            player.spawn_near(cave, start);
+            CHECK(player.grounded);
+            CHECK(player.feet[1] < cave.height(start.x, start.z));
+            CHECK(!cave.block(start));
+            CHECK(legacy.block(start));
+            std::vector<Pos> reachable{start};
+            std::unordered_set<Pos, Hash> visited{start};
+            constexpr Pos adjacent[] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+            int64_t farthest = start.x, deepest = start.y;
+            for (size_t i = 0; i < reachable.size(); ++i) {
+                auto p = reachable[i];
+                farthest = std::max(farthest, p.x);
+                deepest = std::min(deepest, p.y);
+                for (auto step : adjacent) {
+                    Pos next{p.x + step.x, p.y + step.y, p.z + step.z};
+                    if (next.y < cave.height(next.x, next.z) - 3 && visited.insert(next).second &&
+                        !cave.block(next))
+                        reachable.push_back(next);
+                }
+            }
+            CHECK(farthest - start.x > 130);
+            CHECK(start.y - deepest > 75);
+            const Pos branch{start.x + 125, start.y - 39, start.z + 39};
+            CHECK(std::find(reachable.begin(), reachable.end(), branch) != reachable.end());
+            const Pos ordinary{88, cave.height(110, 166) - 25, 172};
+            CHECK(!cave.block(ordinary));
+            CHECK(std::find(reachable.begin(), reachable.end(), ordinary) == reachable.end());
+            auto chunk_origin =
+                Pos{floor_div(start.x, 32) * 32, floor_div(start.y, 32) * 32, floor_div(start.z, 32) * 32};
+            auto wide = generate(cave, chunk_origin, 32);
+            auto across = chunk_origin;
+            across.x += 16;
+            auto narrow = generate(cave, across, 16);
+            for (int z = 0; z < 16; ++z)
+                for (int y = 0; y < 16; ++y)
+                    for (int x = 0; x < 16; ++x)
+                        CHECK(wide.at(x + 16, y, z) == narrow.at(x, y, z));
+
+            auto file = std::filesystem::temp_directory_path() / "vibecraft-cave-profile-test.vced";
+            legacy.save(file);
+            bool rejected_legacy = false;
+            try {
+                cave.load(file);
+            } catch (const std::runtime_error &) {
+                rejected_legacy = true;
+            }
+            CHECK(rejected_legacy);
+            cave.edit(start, 3);
+            cave.save(file);
+            World reloaded(42, true);
+            reloaded.load(file);
+            CHECK(reloaded.block(start) == 3);
+            CHECK(reloaded.block(reachable.back()) == 0);
+            bool rejected = false;
+            try {
+                legacy.load(file);
+            } catch (const std::runtime_error &) {
+                rejected = true;
+            }
+            CHECK(rejected);
+            std::filesystem::remove(file);
+        });
         test("playable movement uses current voxels at chunk boundaries", [] {
             World world;
             Player player;

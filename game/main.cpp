@@ -45,24 +45,30 @@ int main(int argc, char **argv) {
         int frames = 0, radius = 3, horizon = 2048;
         bool horizon_selected = false;
         uint64_t seed = 42;
-        bool benchmark = false;
+        bool benchmark = false, caves = false, cave_start = false, world_selected = false;
         std::string capture, output = "artifacts/render", scenario = "stationary",
                              save = "worlds/testbed.vced";
         for (int i = 1; i < argc; ++i) {
             std::string a = argv[i];
             if (a == "--help") {
-                std::cout << "VibeCraft Beta V2.1\n"
-                             "--seed N --world PATH.vced --radius 2..4 --horizon local|128|512 --validation "
-                             "--frames N\n"
-                             "WASD walk, mouse/arrows look, Space jump, Shift sprint, left/right click "
-                             "or E/Q mine/place, R respawn, Tab release mouse, F5 save, Esc quit.\n"
-                             "Benchmark: --headless --frames N --scenario stationary|flight|yaw|edits "
-                             "--width N --height N --radius 1..16 --output PATH_PREFIX "
-                             "--screenshot PATH.ppm\n";
+                std::cout
+                    << "VibeCraft Beta V2.2\n"
+                       "--seed N --world PATH.vced --radius 2..4 --horizon local|128|512 --validation "
+                       "--frames N\n"
+                       "--caves enables connected caves for new worlds; --cave-start spawns in a tunnel.\n"
+                       "WASD walk, mouse/arrows look, Space jump, Shift sprint, left/right click "
+                       "or E/Q mine/place, R respawn, Tab release mouse, F5 save, Esc quit.\n"
+                       "Benchmark: --headless --frames N --scenario stationary|flight|yaw|edits "
+                       "--width N --height N --radius 1..16 --output PATH_PREFIX "
+                       "--screenshot PATH.ppm\n";
                 return 0;
             }
             if (a == "--headless")
                 config.headless = true;
+            else if (a == "--caves")
+                caves = true;
+            else if (a == "--cave-start")
+                caves = cave_start = true;
             else if (a == "--validation")
                 config.validation = true;
             else {
@@ -98,9 +104,10 @@ int main(int argc, char **argv) {
                     auto parsed = std::from_chars(v.data(), v.data() + v.size(), seed);
                     if (parsed.ec != std::errc{} || parsed.ptr != v.data() + v.size())
                         throw std::runtime_error("--seed requires an unsigned 64-bit integer");
-                } else if (a == "--world")
+                } else if (a == "--world") {
                     save = v;
-                else
+                    world_selected = true;
+                } else
                     throw std::runtime_error("unknown option " + a);
             }
         }
@@ -113,12 +120,16 @@ int main(int argc, char **argv) {
             throw std::runtime_error("--horizon applies to gameplay; omit --headless and --scenario");
         if (!benchmark && (radius < 2 || radius > 4))
             throw std::runtime_error("playable radius must be 2..4 chunks");
-        World world(seed);
+        if (benchmark && cave_start)
+            throw std::runtime_error("--cave-start requires windowed gameplay");
+        if (caves && !world_selected)
+            save = "worlds/caves.vced";
+        World world(seed, caves);
         if (std::filesystem::exists(save))
             world.load(save);
         Renderer renderer(config);
         if (!benchmark)
-            return play(world, renderer, save, radius, horizon, frames, capture);
+            return play(world, renderer, save, radius, horizon, frames, capture, cave_start);
         auto start = Clock::now();
         auto mesh = scene(world, radius);
         renderer.upload(mesh);

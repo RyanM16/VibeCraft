@@ -8,6 +8,7 @@ struct Player {
     bool grounded = false;
 
     void respawn(const World &world);
+    void spawn_near(const World &world, Pos position);
     void move(const World &world, double vx, double vz, bool jump, double seconds);
     bool overlaps(Pos block) const;
 };

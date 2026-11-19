@@ -1,6 +1,6 @@
-# VibeCraft — Beta V2.1
+# VibeCraft — Beta V2.2
 
-A native C++20/Vulkan 1.3 single-player voxel sandbox. Walk and jump across seeded terrain, mine and place blocks, and reopen the same world to resume your edits. The original free-flight and performance workloads are available through the benchmark mode. See the [Beta V2.1 release notes](docs/releases/Beta-V2.1.md) and [engine architecture](docs/architecture.md).
+A native C++20/Vulkan 1.3 single-player voxel sandbox. Walk and jump across seeded terrain, mine and place blocks, and reopen the same world to resume your edits. The original free-flight and performance workloads are available through the benchmark mode. See the [Beta V2.2 release notes](docs/releases/Beta-V2.2.md) and [engine architecture](docs/architecture.md).
 
 ## Launch
 
@@ -11,6 +11,14 @@ After [building on Linux](#build-on-a-normal-linux-desktop) or [building on Wind
 ```
 
 Seed 42 and `worlds/testbed.vced` are the defaults. For a world created with a custom seed, use the same `--seed` each time you open its file. Beta V1 edit snapshots can be opened with seed 42. The game restores edits and spawns you near the origin.
+
+### Explore the cave prototype
+
+```bash
+./build/vibecraft --cave-start --world worlds/caves.vced
+```
+
+`--cave-start` enables the new cave profile and spawns you just inside a descending entrance, facing into the tunnel. Hold **W** to descend. Use **R** to return to the starting column. Use `--caves` for the same world with the normal surface spawn. Both flags default to `worlds/caves.vced`. Reopen with either flag and the original seed. Existing worlds continue to load with their original terrain when both flags are omitted.
 
 ### Controls
 

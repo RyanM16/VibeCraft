@@ -15,9 +15,13 @@ bool blocked(const World &world, std::array<double, 3> feet) {
 } // namespace
 
 void Player::respawn(const World &world) {
-    for (int y = world.height(0, 0) - 4; y <= world.height(0, 0) + 32; ++y) {
-        std::array<double, 3> candidate{.5, double(y), .5};
-        if (world.block({0, y - 1, 0}) && !blocked(world, candidate)) {
+    spawn_near(world, {0, world.height(0, 0), 0});
+}
+
+void Player::spawn_near(const World &world, Pos position) {
+    for (auto y = position.y - 4; y <= position.y + 32; ++y) {
+        std::array<double, 3> candidate{position.x + .5, double(y), position.z + .5};
+        if (world.block({position.x, y - 1, position.z}) && !blocked(world, candidate)) {
             feet = candidate;
             vertical_speed = 0;
             grounded = true;
