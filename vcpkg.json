@@ -1,6 +1,6 @@
 {
   "name": "vibecraft-testbed",
-  "version-string": "0.1.0",
-  "description": "GLFW dependency for the preliminary Vulkan voxel laboratory; use the Vulkan SDK separately.",
+  "version-string": "0.2.0",
+  "description": "GLFW dependency for the VibeCraft Vulkan sandbox; use the Vulkan SDK separately.",
   "dependencies": ["glfw3"]
 }

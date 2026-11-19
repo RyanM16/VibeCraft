@@ -41,6 +41,8 @@ struct Renderer::Impl {
     VkSurfaceKHR surface{};
     VkSwapchainKHR swapchain{};
     VkExtent2D extent{};
+    bool resize_pending = false;
+    int framebuffer_width{}, framebuffer_height{};
     std::vector<VkImage> swap_images;
     std::vector<bool> presented;
     std::vector<VkSemaphore> finished;
@@ -198,11 +200,7 @@ struct Renderer::Impl {
             if (!glfwInit())
                 throw std::runtime_error("GLFW initialization failed: use --headless without a display");
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-            window =
-                glfwCreateWindow(config.width, config.height,
-                                 "VibeCraft test bed | WASD fly | arrows look | E remove | Q place | F5 save",
-                                 nullptr, nullptr);
+            window = glfwCreateWindow(config.width, config.height, "VibeCraft Beta V2", nullptr, nullptr);
             if (!window)
                 throw std::runtime_error("window creation failed");
             uint32_t count = 0;
@@ -226,7 +224,7 @@ struct Renderer::Impl {
             extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
         }
         VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-        app.pApplicationName = "VibeCraft Test Bed";
+        app.pApplicationName = "VibeCraft Beta V2";
         app.apiVersion = VK_API_VERSION_1_3;
         VkInstanceCreateInfo ci{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
         VkValidationFeatureEnableEXT sync = VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT;
@@ -312,65 +310,13 @@ struct Renderer::Impl {
         VK_OK(vkCreateDevice(physical, &di, nullptr, &device));
         vkGetDeviceQueue(device, family, 0, &queue);
         extent = {uint32_t(config.width), uint32_t(config.height)};
-        if (surface) {
-            VkSurfaceCapabilitiesKHR caps;
-            VK_OK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical, surface, &caps));
-            if (!(caps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
-                throw std::runtime_error("surface transfer destination unsupported");
-            uint32_t n = 0;
-            VK_OK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical, surface, &n, nullptr));
-            std::vector<VkSurfaceFormatKHR> formats(n);
-            VK_OK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical, surface, &n, formats.data()));
-            if (formats.empty())
-                throw std::runtime_error("no surface formats");
-            auto format = formats[0];
-            for (auto f : formats)
-                if (f.format == VK_FORMAT_B8G8R8A8_UNORM) {
-                    format = f;
-                    break;
-                }
-            if (caps.currentExtent.width != UINT32_MAX)
-                extent = caps.currentExtent;
-            else {
-                extent.width = std::clamp(extent.width, caps.minImageExtent.width, caps.maxImageExtent.width);
-                extent.height =
-                    std::clamp(extent.height, caps.minImageExtent.height, caps.maxImageExtent.height);
-            }
-            VkFormatProperties destination;
-            vkGetPhysicalDeviceFormatProperties(physical, format.format, &destination);
-            if (!(destination.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
-                throw std::runtime_error("surface blit unsupported");
-            VkSwapchainCreateInfoKHR si{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
-            si.surface = surface;
-            si.minImageCount = caps.minImageCount + 1;
-            if (caps.maxImageCount)
-                si.minImageCount = std::min(si.minImageCount, caps.maxImageCount);
-            si.imageFormat = format.format;
-            si.imageColorSpace = format.colorSpace;
-            si.imageExtent = extent;
-            si.imageArrayLayers = 1;
-            si.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-            si.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            si.preTransform = caps.currentTransform;
-            si.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-            if (!(caps.supportedCompositeAlpha & si.compositeAlpha))
-                si.compositeAlpha = static_cast<VkCompositeAlphaFlagBitsKHR>(
-                    caps.supportedCompositeAlpha & (~caps.supportedCompositeAlpha + 1));
-            si.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-            si.clipped = true;
-            VK_OK(vkCreateSwapchainKHR(device, &si, nullptr, &swapchain));
-            VK_OK(vkGetSwapchainImagesKHR(device, swapchain, &n, nullptr));
-            swap_images.resize(n);
-            VK_OK(vkGetSwapchainImagesKHR(device, swapchain, &n, swap_images.data()));
-            presented.resize(n, false);
-            finished.resize(n);
-            for (auto &s : finished) {
-                VkSemaphoreCreateInfo sc{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-                VK_OK(vkCreateSemaphore(device, &sc, nullptr, &s));
-            }
-            VkSemaphoreCreateInfo sc{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-            VK_OK(vkCreateSemaphore(device, &sc, nullptr, &acquired));
+        if (window) {
+            glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+            if (framebuffer_width > 0 && framebuffer_height > 0)
+                extent = {uint32_t(framebuffer_width), uint32_t(framebuffer_height)};
+            create_swapchain();
         }
+
         for (auto [format, needed] :
              {std::pair{VK_FORMAT_R8G8B8A8_UNORM,
                         VkFormatFeatureFlags(VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |
@@ -382,12 +328,7 @@ struct Renderer::Impl {
             if ((support.optimalTilingFeatures & needed) != needed)
                 throw std::runtime_error("required attachment format unsupported");
         }
-        color = image(VK_FORMAT_R8G8B8A8_UNORM,
-                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                      VK_IMAGE_ASPECT_COLOR_BIT);
-        depth = image(VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                      VK_IMAGE_ASPECT_DEPTH_BIT);
-        readback = buffer(VkDeviceSize(extent.width) * extent.height * 4, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+        create_targets();
         VkCommandPoolCreateInfo pi{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
         pi.queueFamilyIndex = family;
         pi.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -405,6 +346,97 @@ struct Renderer::Impl {
         q.queryCount = 2;
         VK_OK(vkCreateQueryPool(device, &q, nullptr, &queries));
         create_pipeline();
+    }
+    void create_swapchain() {
+        VkSurfaceCapabilitiesKHR caps;
+        VK_OK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical, surface, &caps));
+        if (!(caps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
+            throw std::runtime_error("surface transfer destination unsupported");
+        uint32_t n = 0;
+        VK_OK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical, surface, &n, nullptr));
+        std::vector<VkSurfaceFormatKHR> formats(n);
+        VK_OK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical, surface, &n, formats.data()));
+        if (formats.empty())
+            throw std::runtime_error("no surface formats");
+        auto format = formats[0];
+        for (auto f : formats)
+            if (f.format == VK_FORMAT_B8G8R8A8_UNORM) {
+                format = f;
+                break;
+            }
+        if (caps.currentExtent.width != UINT32_MAX)
+            extent = caps.currentExtent;
+        else {
+            extent.width = std::clamp(extent.width, caps.minImageExtent.width, caps.maxImageExtent.width);
+            extent.height = std::clamp(extent.height, caps.minImageExtent.height, caps.maxImageExtent.height);
+        }
+        VkFormatProperties destination;
+        vkGetPhysicalDeviceFormatProperties(physical, format.format, &destination);
+        if (!(destination.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
+            throw std::runtime_error("surface blit unsupported");
+        VkSwapchainCreateInfoKHR si{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
+        si.surface = surface;
+        si.minImageCount = caps.minImageCount + 1;
+        if (caps.maxImageCount)
+            si.minImageCount = std::min(si.minImageCount, caps.maxImageCount);
+        si.imageFormat = format.format;
+        si.imageColorSpace = format.colorSpace;
+        si.imageExtent = extent;
+        si.imageArrayLayers = 1;
+        si.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        si.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        si.preTransform = caps.currentTransform;
+        si.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        if (!(caps.supportedCompositeAlpha & si.compositeAlpha))
+            si.compositeAlpha = static_cast<VkCompositeAlphaFlagBitsKHR>(caps.supportedCompositeAlpha &
+                                                                         (~caps.supportedCompositeAlpha + 1));
+        si.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        si.clipped = true;
+        VK_OK(vkCreateSwapchainKHR(device, &si, nullptr, &swapchain));
+        VK_OK(vkGetSwapchainImagesKHR(device, swapchain, &n, nullptr));
+        swap_images.resize(n);
+        VK_OK(vkGetSwapchainImagesKHR(device, swapchain, &n, swap_images.data()));
+        presented.assign(n, false);
+        finished.resize(n);
+        for (auto &s : finished) {
+            VkSemaphoreCreateInfo sc{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+            VK_OK(vkCreateSemaphore(device, &sc, nullptr, &s));
+        }
+        VkSemaphoreCreateInfo sc{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+        VK_OK(vkCreateSemaphore(device, &sc, nullptr, &acquired));
+    }
+    void create_targets() {
+        color = image(VK_FORMAT_R8G8B8A8_UNORM,
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                      VK_IMAGE_ASPECT_COLOR_BIT);
+        depth = image(VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                      VK_IMAGE_ASPECT_DEPTH_BIT);
+        readback = buffer(VkDeviceSize(extent.width) * extent.height * 4, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    }
+    void resize(int width, int height) {
+        VK_OK(vkDeviceWaitIdle(device));
+        submitted = false;
+        destroy(color);
+        destroy(depth);
+        destroy(readback);
+        vkDestroyPipeline(device, pipeline, nullptr);
+        pipeline = VK_NULL_HANDLE;
+        vkDestroyPipelineLayout(device, layout, nullptr);
+        layout = VK_NULL_HANDLE;
+        for (auto semaphore : finished)
+            vkDestroySemaphore(device, semaphore, nullptr);
+        finished.clear();
+        vkDestroySemaphore(device, acquired, nullptr);
+        acquired = VK_NULL_HANDLE;
+        vkDestroySwapchainKHR(device, swapchain, nullptr);
+        swapchain = VK_NULL_HANDLE;
+        extent = {uint32_t(width), uint32_t(height)};
+        create_swapchain();
+        create_targets();
+        create_pipeline();
+        framebuffer_width = width;
+        framebuffer_height = height;
+        resize_pending = false;
     }
     VkShaderModule shader(const char *name) {
         std::ifstream f(std::string(VC_SHADER_DIR) + "/terrain." + name + ".spv",
@@ -531,20 +563,34 @@ struct Renderer::Impl {
         indices = buffer(m.indices.size() * 4, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
         void *data;
         VK_OK(vkMapMemory(device, vertices.memory, 0, vertices.size, 0, &data));
-        std::memcpy(data, m.vertices.data(), m.vertices.size() * sizeof(Vertex));
+        if (!m.vertices.empty())
+            std::memcpy(data, m.vertices.data(), m.vertices.size() * sizeof(Vertex));
         vkUnmapMemory(device, vertices.memory);
         VK_OK(vkMapMemory(device, indices.memory, 0, indices.size, 0, &data));
-        std::memcpy(data, m.indices.data(), m.indices.size() * 4);
+        if (!m.indices.empty())
+            std::memcpy(data, m.indices.data(), m.indices.size() * 4);
         vkUnmapMemory(device, indices.memory);
         index_count = uint32_t(m.indices.size());
     }
-    bool draw(const Camera &camera) {
+    bool draw(const Camera &camera, Reticle reticle, float fog_distance) {
+        if (window) {
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+            if (!width || !height) {
+                glfwWaitEventsTimeout(.05);
+                return false;
+            }
+            if (resize_pending || width != framebuffer_width || height != framebuffer_height)
+                resize(width, height);
+        }
         wait();
         uint32_t index = 0;
         if (swapchain) {
             auto r = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, acquired, VK_NULL_HANDLE, &index);
-            if (r == VK_ERROR_OUT_OF_DATE_KHR)
+            if (r == VK_ERROR_OUT_OF_DATE_KHR) {
+                resize_pending = true;
                 return false;
+            }
             if (r != VK_SUBOPTIMAL_KHR)
                 check(r, "acquire image");
         }
@@ -620,12 +666,25 @@ struct Renderer::Impl {
         push.eye[0] = float(camera.x);
         push.eye[1] = float(camera.y);
         push.eye[2] = float(camera.z);
+        push.eye[3] = 14000.f / fog_distance;
         vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(push), &push);
         if (index_count) {
             VkDeviceSize offset = 0;
             vkCmdBindVertexBuffers(command, 0, 1, &vertices.buffer, &offset);
             vkCmdBindIndexBuffer(command, indices.buffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdDrawIndexed(command, index_count, 1, 0, 0, 0);
+        }
+        if (reticle != Reticle::hidden && extent.width >= 24 && extent.height >= 24) {
+            int x = int(extent.width / 2), y = int(extent.height / 2);
+            VkClearRect marks[] = {{{{x - 9, y}, {6, 2}}, 0, 1},
+                                   {{{x + 4, y}, {6, 2}}, 0, 1},
+                                   {{{x, y - 9}, {2, 6}}, 0, 1},
+                                   {{{x, y + 4}, {2, 6}}, 0, 1}};
+            VkClearAttachment mark{};
+            mark.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            mark.clearValue.color = reticle == Reticle::target ? VkClearColorValue{{1.f, .75f, .24f, 1.f}}
+                                                               : VkClearColorValue{{1.f, 1.f, 1.f, 1.f}};
+            vkCmdClearAttachments(command, 1, &mark, 4, marks);
         }
         vkCmdEndRendering(command);
         vkCmdWriteTimestamp2(command, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, queries, 1);
@@ -672,8 +731,10 @@ struct Renderer::Impl {
             pi.pSwapchains = &swapchain;
             pi.pImageIndices = &index;
             auto r = vkQueuePresentKHR(queue, &pi);
-            if (r == VK_ERROR_OUT_OF_DATE_KHR)
+            if (r == VK_ERROR_OUT_OF_DATE_KHR) {
+                resize_pending = true;
                 return false;
+            }
             if (r != VK_SUBOPTIMAL_KHR)
                 check(r, "present image");
         }
@@ -727,8 +788,8 @@ Renderer::~Renderer() = default;
 void Renderer::upload(const Mesh &m) {
     impl_->upload(m);
 }
-bool Renderer::draw(const Camera &c) {
-    return impl_->draw(c);
+bool Renderer::draw(const Camera &c, Reticle reticle, float fog_distance) {
+    return impl_->draw(c, reticle, fog_distance);
 }
 void Renderer::screenshot(const std::string &p) {
     impl_->screenshot(p);

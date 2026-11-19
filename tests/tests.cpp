@@ -1,3 +1,4 @@
+#include "core/player.hpp"
 #include "core/tasks.hpp"
 #include <chrono>
 #include <cmath>
@@ -33,6 +34,35 @@ int main() {
         }
     };
     try {
+        test("playable movement uses current voxels at chunk boundaries", [] {
+            World world;
+            Player player;
+            player.respawn(world);
+            CHECK(player.grounded);
+            CHECK(!world.block({0, int64_t(player.feet[1]), 0}));
+            player.feet = {15.5, 500., .5};
+            for (int x = 14; x <= 19; ++x)
+                world.edit({x, 499, 0}, 3);
+            world.edit({16, 500, 0}, 3);
+            world.edit({16, 501, 0}, 3);
+            player.move(world, 7., 0., false, .1);
+            CHECK(player.feet[0] < 15.71);
+            CHECK(player.grounded);
+            Hit hit;
+            CHECK(raycast(world, {player.feet[0], 500.5, .5}, {1., 0., 0.}, 8., hit));
+            CHECK((hit.block == Pos{16, 500, 0}));
+            CHECK(player.overlaps(hit.previous));
+            world.edit(hit.block, 0);
+            world.edit({16, 501, 0}, 0);
+            player.move(world, 7., 0., false, .1);
+            CHECK(player.feet[0] > 16.);
+            player.move(world, 0., 0., true, .1);
+            CHECK(player.feet[1] > 500.5);
+            for (int i = 0; i < 20; ++i)
+                player.move(world, 0., 0., false, .05);
+            CHECK(player.grounded);
+            CHECK(std::abs(player.feet[1] - 500.) < .01);
+        });
         test("negative and large coordinates", [] {
             CHECK(floor_div(-1, 16) == -1);
             CHECK(floor_div(-16, 16) == -1);
@@ -111,6 +141,13 @@ int main() {
             a.save(path);
             b.load(path);
             CHECK(b.block({1, 2, 3}) == 2);
+            // An abandoned partial snapshot must not shadow the last committed file.
+            auto partial = path;
+            partial += ".tmp";
+            std::ofstream(partial) << "VCED";
+            b.load(path);
+            CHECK(b.block({1, 2, 3}) == 2);
+            std::filesystem::remove(partial);
             {
                 std::fstream f(path, std::ios::in | std::ios::out | std::ios::binary);
                 f.seekp(25);

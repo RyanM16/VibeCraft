@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /workspace/VibeCraft
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 sdk=/workspace/.vibecraft-sdk
 root="$sdk/root"
 if [[ "$(uname -m)" != x86_64 ]]; then

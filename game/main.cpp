@@ -1,9 +1,11 @@
 #include "core/telemetry.hpp"
 #include "core/world.hpp"
+#include "play.hpp"
 #include "render/vulkan/renderer.hpp"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -41,15 +43,20 @@ int main(int argc, char **argv) {
     try {
         RenderConfig config;
         int frames = 0, radius = 3;
+        uint64_t seed = 42;
+        bool benchmark = false;
         std::string capture, output = "artifacts/render", scenario = "stationary",
                              save = "worlds/testbed.vced";
         for (int i = 1; i < argc; ++i) {
             std::string a = argv[i];
             if (a == "--help") {
-                std::cout << "VibeCraft test bed\n--headless --validation --frames N --width N --height N "
-                             "--radius 1..16\n--scenario stationary|flight|yaw|edits --output PATH_PREFIX "
-                             "--screenshot PATH.ppm --world PATH.vced\nWASD move, arrows look, Space/Ctrl "
-                             "altitude, Shift fast, E remove, Q place, F5 save, Esc quit.\n";
+                std::cout << "VibeCraft Beta V2\n"
+                             "--seed N --world PATH.vced --radius 2..4 --validation --frames N\n"
+                             "WASD walk, mouse/arrows look, Space jump, Shift sprint, left/right click "
+                             "or E/Q mine/place, R respawn, Tab release mouse, F5 save, Esc quit.\n"
+                             "Benchmark: --headless --frames N --scenario stationary|flight|yaw|edits "
+                             "--width N --height N --radius 1..16 --output PATH_PREFIX "
+                             "--screenshot PATH.ppm\n";
                 return 0;
             }
             if (a == "--headless")
@@ -72,9 +79,14 @@ int main(int argc, char **argv) {
                     capture = v;
                 else if (a == "--output")
                     output = v;
-                else if (a == "--scenario")
+                else if (a == "--scenario") {
                     scenario = v;
-                else if (a == "--world")
+                    benchmark = true;
+                } else if (a == "--seed") {
+                    auto parsed = std::from_chars(v.data(), v.data() + v.size(), seed);
+                    if (parsed.ec != std::errc{} || parsed.ptr != v.data() + v.size())
+                        throw std::runtime_error("--seed requires an unsigned 64-bit integer");
+                } else if (a == "--world")
                     save = v;
                 else
                     throw std::runtime_error("unknown option " + a);
@@ -83,11 +95,16 @@ int main(int argc, char **argv) {
         if (radius < 1 || radius > 16 || frames < 0 || (config.headless && frames == 0) ||
             (scenario != "stationary" && scenario != "flight" && scenario != "yaw" && scenario != "edits"))
             throw std::runtime_error("invalid options (headless requires --frames; radius 1..16; scenarios "
-                                     "stationary/flight/yaw)");
-        World world;
+                                     "stationary/flight/yaw/edits)");
+        benchmark = benchmark || config.headless;
+        if (!benchmark && (radius < 2 || radius > 4))
+            throw std::runtime_error("playable radius must be 2..4 chunks");
+        World world(seed);
         if (std::filesystem::exists(save))
             world.load(save);
         Renderer renderer(config);
+        if (!benchmark)
+            return play(world, renderer, save, radius, frames, capture);
         auto start = Clock::now();
         auto mesh = scene(world, radius);
         renderer.upload(mesh);
@@ -169,7 +186,7 @@ int main(int argc, char **argv) {
             }
             auto frame_start = now;
             if (!renderer.draw(camera))
-                throw std::runtime_error("surface changed: restart viewer at desired resolution");
+                continue;
             double elapsed = std::chrono::duration<double, std::milli>(Clock::now() - frame_start).count();
             double gpu = renderer.gpu_ms();
             csv << rendered << ',' << elapsed << ',' << gpu << '\n';

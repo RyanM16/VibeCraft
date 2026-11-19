@@ -8,6 +8,7 @@ struct Camera {
     double x = 70, y = 180, z = 70;
     float yaw = -2.35f, pitch = -.45f;
 };
+enum class Reticle { hidden, idle, target };
 struct RenderConfig {
     int width = 1280, height = 720;
     bool headless = false, validation = false;
@@ -20,7 +21,7 @@ class Renderer {
     explicit Renderer(RenderConfig config);
     ~Renderer();
     void upload(const Mesh &mesh);
-    bool draw(const Camera &camera);
+    bool draw(const Camera &camera, Reticle reticle = Reticle::hidden, float fog_distance = 14000.f);
     void screenshot(const std::string &path);
     GLFWwindow *window() const;
     double gpu_ms() const;
