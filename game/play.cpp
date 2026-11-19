@@ -1,5 +1,6 @@
 #include "play.hpp"
 #include "core/player.hpp"
+#include "core/terrain_lod.hpp"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -24,6 +25,7 @@ struct View {
     Pos center;
     uint64_t revision;
     Mesh mesh;
+    size_t horizon_triangles{};
 };
 
 Pos view_center(const Camera &camera) {
@@ -31,7 +33,7 @@ Pos view_center(const Camera &camera) {
     return {align(camera.x), align(camera.y), align(camera.z)};
 }
 
-View build_view(const World &world, Pos center, uint64_t revision, int radius) {
+View build_view(const World &world, Pos center, uint64_t revision, int radius, int horizon) {
     View view{center, revision, {}};
     for (int z = -radius; z < radius; ++z)
         for (int x = -radius; x < radius; ++x)
@@ -44,6 +46,13 @@ View build_view(const World &world, Pos center, uint64_t revision, int radius) {
                 if (view.mesh.bytes() > mesh_budget)
                     throw std::runtime_error("local terrain exceeds mesh budget; reduce --radius");
             }
+    if (horizon) {
+        auto distant = terrain_horizon(world, center, radius * chunk_side, horizon);
+        view.horizon_triangles = distant.indices.size() / 3;
+        append(view.mesh, distant);
+        if (view.mesh.bytes() > mesh_budget)
+            throw std::runtime_error("combined terrain exceeds mesh budget; reduce --radius or --horizon");
+    }
     return view;
 }
 
@@ -55,18 +64,21 @@ bool inside(Pos p, Pos center, int radius, int margin = 0) {
 }
 } // namespace
 
-int play(World &world, Renderer &renderer, const std::filesystem::path &save, int radius, int frames,
-         const std::string &capture) {
+int play(World &world, Renderer &renderer, const std::filesystem::path &save, int radius, int horizon,
+         int frames, const std::string &capture) {
     auto *window = renderer.window();
     Player player;
     player.respawn(world);
     Camera camera{player.feet[0], player.feet[1] + eye_height, player.feet[2], 0, -.25f};
     Pos rendered_center = view_center(camera);
     uint64_t rendered_revision = world.revision();
-    auto initial = build_view(world, rendered_center, rendered_revision, radius);
+    auto start = Clock::now();
+    auto initial = build_view(world, rendered_center, rendered_revision, radius, horizon);
     size_t mesh_bytes = initial.mesh.bytes();
+    size_t horizon_triangles = initial.horizon_triangles;
     renderer.upload(initial.mesh);
     initial.mesh = {};
+    double startup_ms = std::chrono::duration<double, std::milli>(Clock::now() - start).count();
     std::future<View> terrain;
     std::future<void> writer;
     uint64_t saved_revision = world.revision();
@@ -76,8 +88,10 @@ int play(World &world, Renderer &renderer, const std::filesystem::path &save, in
     bool jump_down = false, mine_down = false, place_down = false, save_down = false, tab_down = false;
     bool reset_down = false;
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    std::cout << "VibeCraft Beta V2 | seed " << world.seed() << " | " << renderer.device_name() << " | world "
-              << save.string() << '\n';
+    std::cout << "VibeCraft Beta V2.1 | seed " << world.seed() << " | " << renderer.device_name()
+              << " | world " << save.string() << " | horizon " << horizon / chunk_side << " chunks | "
+              << horizon_triangles << " far triangles | " << (mesh_bytes / 1024) << " KiB mesh capacity | "
+              << startup_ms << " ms initial mesh and upload\n";
     auto previous = Clock::now();
     auto sample_start = previous;
     int sampled_frames = 0;
@@ -163,13 +177,14 @@ int play(World &world, Renderer &renderer, const std::filesystem::path &save, in
                 (view.center == center || view.center == rendered_center)) {
                 renderer.upload(view.mesh);
                 mesh_bytes = view.mesh.bytes();
+                horizon_triangles = view.horizon_triangles;
                 rendered_center = view.center;
                 rendered_revision = view.revision;
             }
         }
         if (!terrain.valid() && (center != rendered_center || rendered_revision != world.revision()))
             terrain = std::async(std::launch::async, build_view, std::cref(world), center, world.revision(),
-                                 radius);
+                                 radius, horizon);
 
         if (pressed(key(GLFW_KEY_F5), save_down))
             save_requested = true;
@@ -187,18 +202,21 @@ int play(World &world, Renderer &renderer, const std::filesystem::path &save, in
         local.x -= rendered_center.x;
         local.y -= rendered_center.y;
         local.z -= rendered_center.z;
-        if (renderer.draw(local, selected ? Reticle::target : Reticle::idle, float(radius * chunk_side))) {
+        const float fog_distance = horizon ? float(horizon) / 4 : float(radius * chunk_side);
+        if (renderer.draw(local, selected ? Reticle::target : Reticle::idle, fog_distance)) {
             ++frame;
             ++sampled_frames;
         }
         if (now - sample_start >= 500ms) {
             std::ostringstream title;
             double elapsed = std::chrono::duration<double>(now - sample_start).count();
-            title << "VibeCraft Beta V2 | " << std::fixed << std::setprecision(1) << sampled_frames / elapsed
-                  << " FPS | " << (sampled_frames ? elapsed * 1000. / sampled_frames : 0.) << " ms | XYZ "
-                  << camera.x << "/" << camera.y << "/" << camera.z << " | seed " << world.seed()
-                  << " | bricks " << 20 * radius * radius << " | mesh " << (mesh_bytes / 1024)
-                  << " KiB | jobs " << int(terrain.valid());
+            title << "VibeCraft Beta V2.1 | " << std::fixed << std::setprecision(1)
+                  << sampled_frames / elapsed << " FPS | "
+                  << (sampled_frames ? elapsed * 1000. / sampled_frames : 0.) << " ms | XYZ " << camera.x
+                  << "/" << camera.y << "/" << camera.z << " | seed " << world.seed() << " | bricks "
+                  << 20 * radius * radius << " | mesh " << (mesh_bytes / 1024) << " KiB | far tris "
+                  << horizon_triangles << " | jobs " << int(terrain.valid()) << " | center "
+                  << rendered_center.x << "/" << rendered_center.z;
             if (selected)
                 title << " | target " << hit.block.x << "/" << hit.block.y << "/" << hit.block.z;
             glfwSetWindowTitle(window, title.str().c_str());

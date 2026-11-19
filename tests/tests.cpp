@@ -1,9 +1,11 @@
 #include "core/player.hpp"
 #include "core/tasks.hpp"
+#include "core/terrain_lod.hpp"
 #include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <thread>
 using namespace vc;
@@ -187,6 +189,48 @@ int main() {
             for (auto v : m.vertices)
                 CHECK(v.y == w.height(int64_t(v.x), int64_t(v.z)) + 1 ||
                       v.y == w.height(int64_t(v.x), int64_t(v.z)) + 1 - 64);
+        });
+        test("gameplay surface rings share full edges at every resolution join", [] {
+            const World world(567);
+            const Pos origin{-112, 160, -240};
+            constexpr int width = 48, extent = 8192;
+            auto mesh = terrain_horizon(world, origin, width, extent);
+            CHECK(mesh.bytes() < 8 * 1024 * 1024);
+            CHECK(mesh.indices.size() / 3 < 50000);
+            using Point = std::array<int, 3>;
+            std::map<std::pair<Point, Point>, int> edges;
+            auto point = [&](uint32_t index) {
+                CHECK(index < mesh.vertices.size());
+                const auto &vertex = mesh.vertices[index];
+                return Point{int(vertex.x), int(vertex.y), int(vertex.z)};
+            };
+            auto on_surface = [&](Point p) {
+                return p[1] == world.height(origin.x + p[0], origin.z + p[2]) + 1 - origin.y;
+            };
+            for (size_t i = 0; i < mesh.indices.size(); i += 3) {
+                std::array vertices{point(mesh.indices[i]), point(mesh.indices[i + 1]),
+                                    point(mesh.indices[i + 2])};
+                if (!on_surface(vertices[0]) || !on_surface(vertices[1]) || !on_surface(vertices[2]))
+                    continue; // The near-edge skirt uses vertices below the generated surface.
+                auto [a, b, c] = vertices;
+                CHECK((b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]) > 0);
+                for (size_t j = 0; j < vertices.size(); ++j) {
+                    auto [start, end] = std::minmax(vertices[j], vertices[(j + 1) % vertices.size()]);
+                    ++edges[{start, end}];
+                }
+            }
+            auto square_boundary = [](Point start, Point end, int half_width) {
+                return (start[0] == end[0] && std::abs(start[0]) == half_width &&
+                        std::abs(start[2]) <= half_width && std::abs(end[2]) <= half_width) ||
+                       (start[2] == end[2] && std::abs(start[2]) == half_width &&
+                        std::abs(start[0]) <= half_width && std::abs(end[0]) <= half_width);
+            };
+            for (const auto &[edge, count] : edges) {
+                auto [start, end] = edge;
+                const bool boundary =
+                    square_boundary(start, end, width) || square_boundary(start, end, extent);
+                CHECK(count == (boundary ? 1 : 2));
+            }
         });
         test("priority scheduler and bounded admission", [] {
             Scheduler s(1, 2);

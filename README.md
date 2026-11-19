@@ -1,13 +1,13 @@
-# VibeCraft — Beta V2
+# VibeCraft — Beta V2.1
 
-A native C++20/Vulkan 1.3 single-player voxel sandbox. Walk and jump across seeded terrain, mine and place blocks, and reopen the same world to resume your edits. The original free-flight and performance workloads are available through the benchmark mode. See the [Beta V2 release notes](docs/releases/Beta-V2.md) and [engine architecture](docs/architecture.md).
+A native C++20/Vulkan 1.3 single-player voxel sandbox. Walk and jump across seeded terrain, mine and place blocks, and reopen the same world to resume your edits. The original free-flight and performance workloads are available through the benchmark mode. See the [Beta V2.1 release notes](docs/releases/Beta-V2.1.md) and [engine architecture](docs/architecture.md).
 
 ## Launch
 
 After [building on Linux](#build-on-a-normal-linux-desktop) or [building on Windows](#windows-development), launch `vibecraft` from the build directory, or run it from the repository root as shown below. The world path is relative to your working directory.
 
 ```bash
-./build/vibecraft --seed 42 --world worlds/my-world.vced
+./build/vibecraft --seed 42 --world worlds/my-world.vced --horizon 512
 ```
 
 Seed 42 and `worlds/testbed.vced` are the defaults. For a world created with a custom seed, use the same `--seed` each time you open its file. Beta V1 edit snapshots can be opened with seed 42. The game restores edits and spawns you near the origin.
@@ -26,6 +26,8 @@ Seed 42 and `worlds/testbed.vced` are the defaults. For a world created with a c
 | Quit | Esc |
 
 An amber crosshair marks a block within reach. The window title reports the target position, seed, FPS, frame time, player coordinates, brick count, mesh memory, and pending terrain jobs. `--radius 2..4` sets the playable window's horizontal half-width in 16-block chunks. The default is 3, or 48 blocks from its snapped center.
+
+`--horizon 128` is the default distance profile. Use `--horizon 512` for an experimental surface view up to 8,192 blocks along each horizontal axis from the terrain window center, or `--horizon local` for the original local view. The exact voxel window continues to control collision and editing. The title also reports distant triangle count and the active window center.
 
 ### Run in the managed Linux cloud
 
@@ -108,6 +110,6 @@ Profiles select the resolution and record your target hardware alongside the **a
 
 ## Beta limits
 
-The playable view uses a rolling window of exact voxels and five vertical brick layers. A single background job rebuilds its mesh after movement or edits. Collisions use world data immediately, and the corresponding geometry updates on the next accepted upload. The window can show a terrain edge, and repeated edits can defer the visible refresh. The save records the seed and block edits in a single atomic snapshot. Each save file expects one running game instance.
+The playable view uses a rolling window of exact voxels and five vertical brick layers. A single background job rebuilds its mesh after movement or edits. Collisions use world data immediately, and the corresponding geometry updates on the next accepted upload. The surface bands share edges between levels. Their transition to exact voxels uses a vertical skirt and can be visible on steep or edited terrain. Far surfaces use generated elevation, and repeated edits can defer the visible refresh. The save records the seed and block edits in a single atomic snapshot. Each save file expects one running game instance.
 
-Distant gameplay terrain LOD, region journaling, advanced lighting, and the later gameplay systems remain on the roadmap. See the [V1 engine decisions](docs/decisions/ADR-0001-testbed.md), [V1 release notes](docs/releases/Beta-V1.md), and [V2 validation](docs/releases/Beta-V2.md).
+Edit-aware distant terrain, smooth transitions as the window moves, region journaling, advanced lighting, and the later gameplay systems remain on the roadmap. See the [V1 engine decisions](docs/decisions/ADR-0001-testbed.md), [V1 release notes](docs/releases/Beta-V1.md), and [V2 validation](docs/releases/Beta-V2.md).

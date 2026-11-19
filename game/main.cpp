@@ -42,7 +42,8 @@ static Mesh scene(const World &w, int radius) {
 int main(int argc, char **argv) {
     try {
         RenderConfig config;
-        int frames = 0, radius = 3;
+        int frames = 0, radius = 3, horizon = 2048;
+        bool horizon_selected = false;
         uint64_t seed = 42;
         bool benchmark = false;
         std::string capture, output = "artifacts/render", scenario = "stationary",
@@ -50,8 +51,9 @@ int main(int argc, char **argv) {
         for (int i = 1; i < argc; ++i) {
             std::string a = argv[i];
             if (a == "--help") {
-                std::cout << "VibeCraft Beta V2\n"
-                             "--seed N --world PATH.vced --radius 2..4 --validation --frames N\n"
+                std::cout << "VibeCraft Beta V2.1\n"
+                             "--seed N --world PATH.vced --radius 2..4 --horizon local|128|512 --validation "
+                             "--frames N\n"
                              "WASD walk, mouse/arrows look, Space jump, Shift sprint, left/right click "
                              "or E/Q mine/place, R respawn, Tab release mouse, F5 save, Esc quit.\n"
                              "Benchmark: --headless --frames N --scenario stationary|flight|yaw|edits "
@@ -75,7 +77,17 @@ int main(int argc, char **argv) {
                     config.height = std::stoi(v);
                 else if (a == "--radius")
                     radius = std::stoi(v);
-                else if (a == "--screenshot")
+                else if (a == "--horizon") {
+                    horizon_selected = true;
+                    if (v == "local")
+                        horizon = 0;
+                    else if (v == "128")
+                        horizon = 2048;
+                    else if (v == "512")
+                        horizon = 8192;
+                    else
+                        throw std::runtime_error("--horizon requires local, 128, or 512");
+                } else if (a == "--screenshot")
                     capture = v;
                 else if (a == "--output")
                     output = v;
@@ -97,6 +109,8 @@ int main(int argc, char **argv) {
             throw std::runtime_error("invalid options (headless requires --frames; radius 1..16; scenarios "
                                      "stationary/flight/yaw/edits)");
         benchmark = benchmark || config.headless;
+        if (benchmark && horizon_selected)
+            throw std::runtime_error("--horizon applies to gameplay; omit --headless and --scenario");
         if (!benchmark && (radius < 2 || radius > 4))
             throw std::runtime_error("playable radius must be 2..4 chunks");
         World world(seed);
@@ -104,7 +118,7 @@ int main(int argc, char **argv) {
             world.load(save);
         Renderer renderer(config);
         if (!benchmark)
-            return play(world, renderer, save, radius, frames, capture);
+            return play(world, renderer, save, radius, horizon, frames, capture);
         auto start = Clock::now();
         auto mesh = scene(world, radius);
         renderer.upload(mesh);
